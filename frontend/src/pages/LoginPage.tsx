@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { apiFetch } from '../utils/apiClient'
 
 type Step = 'email' | 'password'
 
@@ -18,9 +19,11 @@ export function LoginPage() {
   const successMessage = (location.state as { message?: string } | null)?.message
 
   useEffect(() => {
-    if (localStorage.getItem('token')) {
-      navigate('/home', { replace: true })
-    }
+    if (!localStorage.getItem('token')) return
+    apiFetch('/auth/profile').then((res) => {
+      if (res.ok) navigate('/home', { replace: true })
+      else localStorage.removeItem('token')
+    }).catch(() => localStorage.removeItem('token'))
   }, [navigate])
 
   const handleEmailSubmit = async (e: React.FormEvent) => {

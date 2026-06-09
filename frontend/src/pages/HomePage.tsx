@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiFetch } from '../utils/apiClient'
 
 interface ProfileData {
   full_name?: string
@@ -8,48 +9,41 @@ interface ProfileData {
 
 export function HomePage() {
   const navigate = useNavigate()
-  const [loggedIn] = useState(!!localStorage.getItem('token'))
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      setLoading(false)
+    if (!localStorage.getItem('token')) {
+      navigate('/login', { replace: true })
       return
     }
 
-    fetch('/api/auth/profile', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setProfile(data.data)
+    apiFetch('/auth/profile')
+      .then(async (res) => {
+        if (res.status === 401) {
+          localStorage.removeItem('token')
+          navigate('/login', { replace: true })
+          return
         }
+        const data = await res.json()
+        if (data.success) setProfile(data.data)
+      })
+      .catch(() => {
+        localStorage.removeItem('token')
+        navigate('/login', { replace: true })
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, [navigate])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
     navigate('/login')
   }
 
-  if (!loggedIn) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg text-gray-600 mb-4">Please log in first</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Go to Login
-          </button>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500">Loading...</p>
       </div>
     )
   }
