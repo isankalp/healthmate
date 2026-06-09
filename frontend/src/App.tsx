@@ -1,7 +1,6 @@
 import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { SignupPage } from './pages/SignupPage'
 import { OTPVerifyPage } from './pages/OTPVerifyPage'
 import { LoginPage } from './pages/LoginPage'
 import { HomePage } from './pages/HomePage'
@@ -18,7 +17,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/signup" element={<Navigate to="/login" replace />} />
           <Route path="/otp-verify" element={<OTPVerifyPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/profile-setup" element={<ProfileSetupPage />} />
